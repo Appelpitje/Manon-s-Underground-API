@@ -12,4 +12,9 @@ interface ServerSnapshotRepository : JpaRepository<ServerSnapshot, Long> {
      * Find all snapshots after a specific time
      */
     fun findAllBySnapshotTimeAfter(snapshotTime: Instant): List<ServerSnapshot>
+
+    /**
+     * Find all snapshots for a specific server after a specific time
+     */
+    fun findByServerIdAndSnapshotTimeAfter(serverId: Long, snapshotTime: Instant): List<ServerSnapshot>
 }

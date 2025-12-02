@@ -94,29 +94,38 @@ class ServerSnapshotService(
             serversProcessed = serverList.servers.size
             logger.info("Found ${serverList.servers.size} servers for $gamename")
             
-            // Filter servers with players
-            val serversWithActivePlayers = serverList.servers.filter { it.numplayers > 0 }
-            logger.info("Found ${serversWithActivePlayers.size} servers with active players for $gamename")
-            
-            // For each server with players, get detailed info and save
-            serversWithActivePlayers.forEach { serverInfo ->
+            // Save all servers and snapshot those with players
+            serverList.servers.forEach { serverInfo ->
                 try {
-                    val serverDetails = networksApiService.getServerDetails(
-                        gamename,
+                    // Ensure server entity exists (save all servers)
+                    val server = findOrSaveServer(
+                        serverInfo.id,
                         serverInfo.ip,
-                        serverInfo.hostport
+                        serverInfo.hostport,
+                        serverInfo.hostname,
+                        serverInfo.gamename,
+                        serverInfo.country
                     )
-                    
-                    val savedSnapshot = saveServerSnapshot(serverDetails)
-                    serversWithPlayers++
-                    playersRecorded += savedSnapshot.players.size
-                    
-                    logger.debug(
-                        "Saved snapshot for ${serverInfo.hostname} with ${savedSnapshot.players.size} players"
-                    )
+
+                    // Only fetch details and snapshot if players are present
+                    if (serverInfo.numplayers > 0) {
+                        val serverDetails = networksApiService.getServerDetails(
+                            gamename,
+                            serverInfo.ip,
+                            serverInfo.hostport
+                        )
+                        
+                        val savedSnapshot = saveServerSnapshot(serverDetails, server)
+                        serversWithPlayers++
+                        playersRecorded += savedSnapshot.players.size
+                        
+                        logger.debug(
+                            "Saved snapshot for ${serverInfo.hostname} with ${savedSnapshot.players.size} players"
+                        )
+                    }
                 } catch (e: Exception) {
                     logger.error(
-                        "Error fetching/saving details for server ${serverInfo.hostname} " +
+                        "Error processing server ${serverInfo.hostname} " +
                         "(${serverInfo.ip}:${serverInfo.hostport})", 
                         e
                     )
@@ -130,32 +139,50 @@ class ServerSnapshotService(
         
         return SnapshotResult(serversProcessed, serversWithPlayers, playersRecorded, errors, 0)
     }
+
+    /**
+     * Find existing server or create new one
+     */
+    private fun findOrSaveServer(
+        serverId: Int,
+        ip: String,
+        hostport: Int,
+        hostname: String,
+        gamename: String,
+        country: String?
+    ): Server {
+        var server = serverRepository.findByIpAndHostportAndHostname(ip, hostport, hostname)
+        
+        if (server == null) {
+            server = Server(
+                serverId = serverId,
+                ip = ip,
+                hostport = hostport,
+                hostname = hostname,
+                gamename = gamename,
+                country = country
+            )
+            server = serverRepository.save(server)
+        }
+        return server!!
+    }
     
     /**
      * Save a server snapshot with its players
      */
     @Transactional
-    fun saveServerSnapshot(serverDetails: ServerDetailsResponse): ServerSnapshot {
+    fun saveServerSnapshot(serverDetails: ServerDetailsResponse, preLoadedServer: Server? = null): ServerSnapshot {
         val snapshotTime = Instant.now()
         
         // Find or create Server identity
-        var server = serverRepository.findByIpAndHostportAndHostname(
+        val server = preLoadedServer ?: findOrSaveServer(
+            serverDetails.id,
             serverDetails.ip,
             serverDetails.hostport,
-            serverDetails.hostname
+            serverDetails.hostname,
+            serverDetails.gamename,
+            serverDetails.country
         )
-        
-        if (server == null) {
-            server = Server(
-                serverId = serverDetails.id,
-                ip = serverDetails.ip,
-                hostport = serverDetails.hostport,
-                hostname = serverDetails.hostname,
-                gamename = serverDetails.gamename,
-                country = serverDetails.country
-            )
-            server = serverRepository.save(server)
-        }
         
         // Create Snapshot
         val snapshot = ServerSnapshot(

@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: manonsunderground
+
+networks:
+  api:
+    base-url: https://master.333networks.com/json
+    default-results-per-page: 50
+    min-update-interval-minutes: 7.5
+    user-agent: "Manon's Underground API - Data from 333networks"
+
+server:
+  port: 8080
+
+logging:
+  level:
+    com.manonsunderground: INFO

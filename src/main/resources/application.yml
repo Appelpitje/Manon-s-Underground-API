@@ -2,6 +2,27 @@ spring:
   application:
     name: manonsunderground
 
+  datasource:
+    url: jdbc:postgresql://localhost:5432/manonsunderground
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+  
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+    table: flyway_schema_history_v2
+
 networks:
   api:
     base-url: https://master.333networks.com/json
@@ -15,3 +36,4 @@ server:
 logging:
   level:
     com.manonsunderground: INFO
+    org.hibernate.SQL: WARN

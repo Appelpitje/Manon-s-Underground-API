@@ -54,13 +54,8 @@ data class ServerDetailsResponse(
                 PlayerInfo(
                     sid = playerMap["sid"] as? Int ?: 0,
                     name = playerMap["name"] as? String ?: "",
-                    team = playerMap["team"] as? String,
                     frags = playerMap["frags"] as? Int ?: 0,
-                    mesh = playerMap["mesh"] as? String,
-                    skin = playerMap["skin"] as? String,
-                    face = playerMap["face"] as? String,
                     ping = playerMap["ping"] as? Int ?: 0,
-                    dtPlayer = playerMap["dt_player"] as? Long ?: 0,
                     misc = playerMap["misc"] as? String
                 )
             }
@@ -73,13 +68,7 @@ data class ServerDetailsResponse(
 data class PlayerInfo(
     val sid: Int,
     val name: String,
-    val team: String?,
     val frags: Int,
-    val mesh: String?,
-    val skin: String?,
-    val face: String?,
     val ping: Int,
-    @JsonProperty("dt_player")
-    val dtPlayer: Long,
     val misc: String?
 )

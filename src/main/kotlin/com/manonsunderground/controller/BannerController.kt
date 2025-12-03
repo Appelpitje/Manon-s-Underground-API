@@ -155,10 +155,16 @@ class BannerController(
                                     ${if (data.players.isEmpty()) 
                                         "<div class='text-xs text-slate-600 text-center py-8 italic'>No players online</div>" 
                                       else 
-                                        data.players.joinToString("") { 
+                                        data.players.joinToString("") { player ->
+                                            val pingColor = when {
+                                                player.ping < 100 -> "bg-green-500"
+                                                player.ping < 200 -> "bg-yellow-500"
+                                                player.ping < 300 -> "bg-orange-500"
+                                                else -> "bg-red-500"
+                                            }
                                             """<div class="text-xs text-slate-300 px-3 py-0.5 hover:bg-slate-800/50 rounded transition-colors flex items-center gap-2 border-b border-slate-800/50 last:border-0">
-                                                <div class="w-1.5 h-1.5 rounded-full bg-green-500/50"></div>
-                                                <span class="truncate">$it</span>
+                                                <div class="w-1.5 h-1.5 rounded-full ${pingColor}/50"></div>
+                                                <span class="truncate">${player.name}</span>
                                             </div>"""
                                         }
                                     }

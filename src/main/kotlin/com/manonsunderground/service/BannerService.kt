@@ -108,7 +108,7 @@ class BannerService(
             mapImageBase64 = mapImageBase64,
             currentPlayers = latestSnapshot?.numPlayers ?: 0,
             maxPlayers = latestSnapshot?.maxPlayers ?: 0,
-            players = playersList.map { it.name }
+            players = playersList.map { PlayerData(it.name, it.ping) }
         )
     }
     
@@ -122,6 +122,11 @@ class BannerService(
             "data:$mimeType;base64," + java.util.Base64.getEncoder().encodeToString(baos.toByteArray())
         }
     }
+
+    data class PlayerData(
+        val name: String,
+        val ping: Int
+    )
 
     data class WidgetData(
         val serverName: String,
@@ -137,7 +142,7 @@ class BannerService(
         val mapImageBase64: String,
         val currentPlayers: Int,
         val maxPlayers: Int,
-        val players: List<String>
+        val players: List<PlayerData>
     )
 
     fun generateBanner(ip: String, port: Int): Pair<ByteArray, String> {

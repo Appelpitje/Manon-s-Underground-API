@@ -2,6 +2,7 @@ package com.manonsunderground.scheduler
 
 import com.manonsunderground.service.ServerSnapshotService
 import org.slf4j.LoggerFactory
+import org.springframework.cache.annotation.CacheEvict
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 
@@ -24,8 +25,10 @@ class ServerSnapshotScheduler(
     /**
      * Run every 7.5 minutes to snapshot all MOHAA servers
      * Initial delay of 30 seconds to allow application to fully start
+     * After completion, evict all widget data cache to ensure fresh data
      */
     @Scheduled(fixedRate = SNAPSHOT_INTERVAL_MS, initialDelay = 30000)
+    @CacheEvict(value = ["widgetData"], allEntries = true)
     fun snapshotServers() {
         logger.info("=== Starting scheduled server snapshot ===")
         
@@ -38,7 +41,8 @@ class ServerSnapshotScheduler(
                 "\n  Servers with players: ${result.serversWithPlayers}" +
                 "\n  Players recorded: ${result.playersRecorded}" +
                 "\n  Errors: ${result.errors}" +
-                "\n  Duration: ${result.durationMs}ms"
+                "\n  Duration: ${result.durationMs}ms" +
+                "\n  Widget cache cleared for fresh data"
             )
             
             if (result.errors > 0) {

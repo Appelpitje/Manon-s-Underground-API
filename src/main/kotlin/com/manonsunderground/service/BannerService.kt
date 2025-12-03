@@ -4,6 +4,7 @@ import com.manonsunderground.repository.ServerRepository
 import com.manonsunderground.repository.ServerSnapshotRepository
 import jakarta.annotation.PostConstruct
 import org.slf4j.LoggerFactory
+import org.springframework.cache.annotation.Cacheable
 import org.springframework.core.io.ClassPathResource
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -15,6 +16,7 @@ import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
 import java.time.Instant
 import java.time.temporal.ChronoUnit
+import java.util.concurrent.ConcurrentHashMap
 import javax.imageio.ImageIO
 import javax.imageio.spi.IIORegistry
 import kotlin.math.max
@@ -24,6 +26,8 @@ class BannerService(
     private val serverRepository: ServerRepository,
     private val serverSnapshotRepository: ServerSnapshotRepository
 ) {
+    // Cache for base64 encoded map images
+    private val mapImageCache = ConcurrentHashMap<String, String>()
     private val logger = LoggerFactory.getLogger(BannerService::class.java)
 
     @PostConstruct
@@ -47,6 +51,7 @@ class BannerService(
         }
     }
 
+    @Cacheable(value = ["widgetData"], key = "#ip + ':' + #port")
     @Transactional(readOnly = true)
     fun getWidgetData(ip: String, port: Int): WidgetData {
         val server = serverRepository.findByIpAndHostport(ip, port)
@@ -58,15 +63,11 @@ class BannerService(
 
         val latestSnapshot = snapshots.lastOrNull()
         val mapName = latestSnapshot?.mapname ?: "unknown"
-        val mapImage = loadMapImage(mapName)
+        
+        // Get cached or load map image base64
+        val mapImageBase64 = getMapImageBase64(mapName)
+        
         val playersList = latestSnapshot?.players ?: emptyList()
-
-        // Convert map image to base64
-        val baos = ByteArrayOutputStream()
-        // Force PNG for reliability
-        ImageIO.write(mapImage, "png", baos)
-        val mimeType = "image/png"
-        val mapImageBase64 = java.util.Base64.getEncoder().encodeToString(baos.toByteArray())
 
         // Determine full game name
         var fullGameName = "Medal of Honor Allied Assault"
@@ -97,11 +98,22 @@ class BannerService(
             gameType = fullGameName,
             gameMode = gameMode,
             mapName = mapName,
-            mapImageBase64 = "data:$mimeType;base64,$mapImageBase64",
+            mapImageBase64 = mapImageBase64,
             currentPlayers = latestSnapshot?.numPlayers ?: 0,
             maxPlayers = latestSnapshot?.maxPlayers ?: 0,
             players = playersList.map { it.name }
         )
+    }
+    
+    private fun getMapImageBase64(mapName: String): String {
+        // Check cache first
+        return mapImageCache.getOrPut(mapName) {
+            val mapImage = loadMapImage(mapName)
+            val baos = ByteArrayOutputStream()
+            ImageIO.write(mapImage, "png", baos)
+            val mimeType = "image/png"
+            "data:$mimeType;base64," + java.util.Base64.getEncoder().encodeToString(baos.toByteArray())
+        }
     }
 
     data class WidgetData(

@@ -75,7 +75,7 @@ class BannerController(
                 <div class="relative w-full max-w-[400px] rounded-xl overflow-hidden bg-slate-900 text-white shadow-2xl font-sans group border border-slate-700/50 flex flex-col">
                     
                     <!-- Header Section (Map Background) -->
-                    <div class="relative h-[200px] shrink-0">
+                    <div class="relative h-[200px] shrink-0 overflow-hidden">
                         <!-- Background Image with Overlay -->
                         <div class="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105" 
                              style="background-image: url('${data.mapImageBase64}');">
@@ -105,7 +105,7 @@ class BannerController(
 
                         <!-- Middle: Server Info -->
                         <div class="mt-2">
-                            <h3 class="font-bold text-xl leading-tight mb-2 text-white drop-shadow-lg truncate" title="${data.serverName}">
+                            <h3 class="font-bold text-xl leading-tight mb-2 text-white drop-shadow-lg break-words" title="${data.serverName}">
                                 ${data.serverName}
                             </h3>
                             
@@ -113,14 +113,6 @@ class BannerController(
                                 <!-- Game Mode Badge -->
                                 <span class="bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-2 py-1 rounded">
                                     ${data.gameMode}
-                                </span>
-                                
-                                <!-- Map Name Badge -->
-                                <span class="bg-slate-700/40 text-slate-300 border border-slate-600/30 px-2 py-1 rounded flex items-center gap-1">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 7m0 13V7" />
-                                    </svg>
-                                    ${data.mapName}
                                 </span>
                             </div>
                         </div>
@@ -132,16 +124,10 @@ class BannerController(
                     <div class="bg-slate-900 p-5 pt-2 space-y-2">
                         <!-- IP & Copy -->
                         <div class="space-y-2">
-                            <div class="flex items-stretch gap-2 h-9">
-                                <div class="flex-1 bg-slate-950/50 border border-slate-800 rounded flex items-center px-3 text-xs font-mono text-slate-400 select-all">
+                            <div class="flex items-stretch min-h-[36px]">
+                                <div class="flex-1 min-w-0 bg-slate-950/50 border border-slate-800 rounded flex items-center px-3 text-xs font-mono text-slate-400 select-all overflow-x-auto">
                                     ${data.ip}:${data.port}
                                 </div>
-                                <button id="copyBtn" onclick="copyIp()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 px-4 rounded text-xs font-bold transition-all flex items-center gap-1.5 active:scale-95 cursor-pointer">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                                    </svg>
-                                    Copy
-                                </button>
                             </div>
 
                             <!-- Players Progress -->

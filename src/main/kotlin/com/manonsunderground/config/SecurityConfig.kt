@@ -16,6 +16,7 @@ class SecurityConfig {
             .authorizeHttpRequests { auth ->
                 auth.anyRequest().permitAll()
             }
+            .headers { it.frameOptions { it.disable() } }
             .csrf { it.disable() }
         
         return http.build()

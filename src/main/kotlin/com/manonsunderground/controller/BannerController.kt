@@ -92,6 +92,10 @@ class BannerController(
                                 <!-- Game Icon -->
                                 <div class="flex items-center gap-2 pt-1 pl-1">
                                     <img src="${data.gameIconBase64}" alt="${data.gameName}" class="h-6 w-auto drop-shadow-md" title="${data.gameType}">
+                                    ${if (data.opmIconBase64 != null) 
+                                        """<img src="${data.opmIconBase64}" alt="OPM" class="h-6 w-auto drop-shadow-md" title="Open Mohaa">"""
+                                      else ""
+                                    }
                                 </div>
                                 
                                 <!-- Ping / Status -->

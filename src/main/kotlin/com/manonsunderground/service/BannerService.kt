@@ -89,6 +89,10 @@ class BannerService(
         }
 
         val gameIconBase64 = getGameIconBase64(server.gamename)
+        
+        // Check for OPM (Open Mohaa)
+        val isOpm = latestSnapshot?.gamever?.contains("+") == true
+        val opmIconBase64 = if (isOpm) getOpmIconBase64() else null
 
         return WidgetData(
             serverName = server.hostname,
@@ -97,6 +101,7 @@ class BannerService(
             country = server.country?.uppercase() ?: "UNK",
             gameName = server.gamename,
             gameIconBase64 = gameIconBase64,
+            opmIconBase64 = opmIconBase64,
             gameType = fullGameName,
             gameMode = gameMode,
             mapName = mapName,
@@ -125,6 +130,7 @@ class BannerService(
         val country: String,
         val gameName: String,
         val gameIconBase64: String,
+        val opmIconBase64: String?,
         val gameType: String,
         val gameMode: String,
         val mapName: String,
@@ -301,6 +307,19 @@ class BannerService(
             logger.warn("Could not load game icon for $gameName", e)
         }
         return ""
+    }
+
+    private fun getOpmIconBase64(): String? {
+        try {
+            val resource = ClassPathResource("icons/OPM.png")
+            if (resource.exists()) {
+                val bytes = resource.inputStream.readBytes()
+                return "data:image/png;base64," + java.util.Base64.getEncoder().encodeToString(bytes)
+            }
+        } catch (e: Exception) {
+            logger.warn("Could not load OPM icon", e)
+        }
+        return null
     }
 
     private fun drawGraph(

@@ -72,10 +72,8 @@ class BannerService(
         // Determine full game name
         var fullGameName = "Medal of Honor Allied Assault"
         val gn = server.gamename.lowercase()
-        if (gn == "mohsh") fullGameName = "Medal of Honor Spearhead"
-        else if (gn == "mohbt") fullGameName = "Medal of Honor Breakthrough"
-        else if (gn == "cod") fullGameName = "Call of Duty"
-        else if (gn == "cod2") fullGameName = "Call of Duty 2"
+        if (gn == "mohaas") fullGameName = "Medal of Honor Spearhead"
+        else if (gn == "mohaab") fullGameName = "Medal of Honor Breakthrough"
 
         // Determine Game Mode
         val rawGametype = latestSnapshot?.gametype?.lowercase() ?: "dm"
@@ -90,11 +88,15 @@ class BannerService(
             else -> rawGametype.uppercase()
         }
 
+        val gameIconBase64 = getGameIconBase64(server.gamename)
+
         return WidgetData(
             serverName = server.hostname,
             ip = ip,
             port = port,
             country = server.country?.uppercase() ?: "UNK",
+            gameName = server.gamename,
+            gameIconBase64 = gameIconBase64,
             gameType = fullGameName,
             gameMode = gameMode,
             mapName = mapName,
@@ -121,6 +123,8 @@ class BannerService(
         val ip: String,
         val port: Int,
         val country: String,
+        val gameName: String,
+        val gameIconBase64: String,
         val gameType: String,
         val gameMode: String,
         val mapName: String,
@@ -178,9 +182,43 @@ class BannerService(
             g2d.font = Font("SansSerif", Font.PLAIN, 11)
             g2d.drawString("$ip:$port", 10, 38)
             
-            // Players
-            val players = "${latestSnapshot?.numPlayers ?: 0} / ${latestSnapshot?.maxPlayers ?: 0}"
-            g2d.drawString("Players: $players", 10, 56)
+            // Players Progress Bar
+            val current = latestSnapshot?.numPlayers ?: 0
+            val max = latestSnapshot?.maxPlayers ?: 0
+            
+            val label = "Players: "
+            g2d.drawString(label, 10, 56)
+            val labelWidth = g2d.fontMetrics.stringWidth(label)
+            
+            val barX = 10 + labelWidth
+            val barY = 45
+            val barWidth = 100
+            val barHeight = 13
+            
+            // Bar Background
+            g2d.color = Color(255, 255, 255, 60)
+            g2d.fillRect(barX, barY, barWidth, barHeight)
+            
+            // Bar Progress
+            if (max > 0) {
+                val progress = (current.toDouble() / max).coerceIn(0.0, 1.0)
+                val progressWidth = (barWidth * progress).toInt()
+                g2d.color = Color(0, 255, 0, 180)
+                g2d.fillRect(barX, barY, progressWidth, barHeight)
+            }
+            
+            // Bar Border
+            g2d.color = Color.WHITE
+            g2d.drawRect(barX, barY, barWidth, barHeight)
+            
+            // Count Text
+            val playersText = "$current / $max"
+            val textWidth = g2d.fontMetrics.stringWidth(playersText)
+            val textX = barX + (barWidth - textWidth) / 2
+            g2d.drawString(playersText, textX, 56)
+            
+            // Reset color for next items
+            g2d.color = Color.WHITE
             
             // Map
             g2d.drawString("Map: $mapName", 10, 74)
@@ -243,6 +281,26 @@ class BannerService(
         g.fillRect(0, 0, 560, 95)
         g.dispose()
         return fallback
+    }
+
+    private fun getGameIconBase64(gameName: String): String {
+        val iconName = when (gameName.lowercase()) {
+            "mohaa" -> "AA.png"
+            "mohaas" -> "SH.png"
+            "mohaab" -> "BT.png"
+            else -> "AA.png"
+        }
+        
+        try {
+            val resource = ClassPathResource("icons/$iconName")
+            if (resource.exists()) {
+                val bytes = resource.inputStream.readBytes()
+                return "data:image/png;base64," + java.util.Base64.getEncoder().encodeToString(bytes)
+            }
+        } catch (e: Exception) {
+            logger.warn("Could not load game icon for $gameName", e)
+        }
+        return ""
     }
 
     private fun drawGraph(

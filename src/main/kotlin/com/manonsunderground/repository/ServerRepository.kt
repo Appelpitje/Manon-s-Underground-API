@@ -16,4 +16,9 @@ interface ServerRepository : JpaRepository<Server, Long> {
      * Find a server by ip and hostport
      */
     fun findByIpAndHostport(ip: String, hostport: Int): Server?
+
+    /**
+     * Find the latest server by ip and hostport (highest ID)
+     */
+    fun findTopByIpAndHostportOrderByIdDesc(ip: String, hostport: Int): Server?
 }

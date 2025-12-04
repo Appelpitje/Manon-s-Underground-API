@@ -66,7 +66,7 @@ class BannerService(
         }
         
         logger.debug("Looking up server in database: ip='$resolvedIp', port=$port")
-        val server = serverRepository.findByIpAndHostport(resolvedIp, port)
+        val server = serverRepository.findTopByIpAndHostportOrderByIdDesc(resolvedIp, port)
             ?: throw RuntimeException("Server not found for IP: $resolvedIp and port: $port (original input: $ip)")
 
         val since = Instant.now().minus(24, ChronoUnit.HOURS)
@@ -169,7 +169,7 @@ class BannerService(
         }
         
         logger.debug("Looking up server in database (banner): ip='$resolvedIp', port=$port")
-        val server = serverRepository.findByIpAndHostport(resolvedIp, port)
+        val server = serverRepository.findTopByIpAndHostportOrderByIdDesc(resolvedIp, port)
             ?: throw RuntimeException("Server not found for IP: $resolvedIp and port: $port (original input: $ip)")
 
         val since = Instant.now().minus(24, ChronoUnit.HOURS)

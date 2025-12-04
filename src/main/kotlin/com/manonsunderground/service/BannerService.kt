@@ -2,6 +2,7 @@ package com.manonsunderground.service
 
 import com.manonsunderground.repository.ServerRepository
 import com.manonsunderground.repository.ServerSnapshotRepository
+import com.manonsunderground.util.DnsUtil
 import jakarta.annotation.PostConstruct
 import org.slf4j.LoggerFactory
 import org.springframework.cache.annotation.Cacheable
@@ -54,7 +55,15 @@ class BannerService(
     @Cacheable(value = ["widgetData"], key = "#ip + ':' + #port")
     @Transactional(readOnly = true)
     fun getWidgetData(ip: String, port: Int): WidgetData {
-        val server = serverRepository.findByIpAndHostport(ip, port)
+        // Resolve hostname to IP if needed
+        val resolvedIp = try {
+            DnsUtil.resolveToIp(ip)
+        } catch (e: Exception) {
+            logger.error("Failed to resolve hostname: $ip", e)
+            throw RuntimeException("Unable to resolve hostname: $ip", e)
+        }
+        
+        val server = serverRepository.findByIpAndHostport(resolvedIp, port)
             ?: throw RuntimeException("Server not found")
 
         val since = Instant.now().minus(24, ChronoUnit.HOURS)
@@ -146,7 +155,15 @@ class BannerService(
     )
 
     fun generateBanner(ip: String, port: Int): Pair<ByteArray, String> {
-        val server = serverRepository.findByIpAndHostport(ip, port)
+        // Resolve hostname to IP if needed
+        val resolvedIp = try {
+            DnsUtil.resolveToIp(ip)
+        } catch (e: Exception) {
+            logger.error("Failed to resolve hostname: $ip", e)
+            throw RuntimeException("Unable to resolve hostname: $ip", e)
+        }
+        
+        val server = serverRepository.findByIpAndHostport(resolvedIp, port)
             ?: throw RuntimeException("Server not found")
 
         val since = Instant.now().minus(24, ChronoUnit.HOURS)

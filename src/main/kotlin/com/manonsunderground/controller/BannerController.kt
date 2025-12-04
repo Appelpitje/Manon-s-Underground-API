@@ -14,6 +14,11 @@ class BannerController(
     private val bannerService: BannerService
 ) {
 
+    /**
+     * Get server banner image
+     * @param ip Server IP address or hostname (DNS lookup will be performed if hostname is provided)
+     * @param port Server port
+     */
     @GetMapping("/{ip}/{port}/banner.webp")
     fun getBanner(
         @PathVariable ip: String,
@@ -28,6 +33,11 @@ class BannerController(
 
 
 
+    /**
+     * Get server widget HTML
+     * @param ip Server IP address or hostname (DNS lookup will be performed if hostname is provided)
+     * @param port Server port
+     */
     @GetMapping("/{ip}/{port}/widget")
     fun getWidgetHtml(
         @PathVariable ip: String,

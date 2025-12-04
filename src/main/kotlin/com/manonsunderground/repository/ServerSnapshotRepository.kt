@@ -17,4 +17,9 @@ interface ServerSnapshotRepository : JpaRepository<ServerSnapshot, Long> {
      * Find all snapshots for a specific server after a specific time
      */
     fun findByServerIdAndSnapshotTimeAfter(serverId: Long, snapshotTime: Instant): List<ServerSnapshot>
+
+    /**
+     * Find the latest snapshot for a server by ip and hostport
+     */
+    fun findTopByServerIpAndServerHostportOrderBySnapshotTimeDesc(ip: String, hostport: Int): ServerSnapshot?
 }

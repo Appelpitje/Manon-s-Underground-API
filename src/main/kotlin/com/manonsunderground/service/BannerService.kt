@@ -57,14 +57,17 @@ class BannerService(
     fun getWidgetData(ip: String, port: Int): WidgetData {
         // Resolve hostname to IP if needed
         val resolvedIp = try {
-            DnsUtil.resolveToIp(ip)
+            val resolved = DnsUtil.resolveToIp(ip)
+            logger.info("DNS resolution: input='$ip', resolved='$resolved'")
+            resolved
         } catch (e: Exception) {
             logger.error("Failed to resolve hostname: $ip", e)
             throw RuntimeException("Unable to resolve hostname: $ip", e)
         }
         
+        logger.debug("Looking up server in database: ip='$resolvedIp', port=$port")
         val server = serverRepository.findByIpAndHostport(resolvedIp, port)
-            ?: throw RuntimeException("Server not found")
+            ?: throw RuntimeException("Server not found for IP: $resolvedIp and port: $port (original input: $ip)")
 
         val since = Instant.now().minus(24, ChronoUnit.HOURS)
         val snapshots = serverSnapshotRepository.findByServerIdAndSnapshotTimeAfter(server.id!!, since)
@@ -157,14 +160,17 @@ class BannerService(
     fun generateBanner(ip: String, port: Int): Pair<ByteArray, String> {
         // Resolve hostname to IP if needed
         val resolvedIp = try {
-            DnsUtil.resolveToIp(ip)
+            val resolved = DnsUtil.resolveToIp(ip)
+            logger.info("DNS resolution (banner): input='$ip', resolved='$resolved'")
+            resolved
         } catch (e: Exception) {
             logger.error("Failed to resolve hostname: $ip", e)
             throw RuntimeException("Unable to resolve hostname: $ip", e)
         }
         
+        logger.debug("Looking up server in database (banner): ip='$resolvedIp', port=$port")
         val server = serverRepository.findByIpAndHostport(resolvedIp, port)
-            ?: throw RuntimeException("Server not found")
+            ?: throw RuntimeException("Server not found for IP: $resolvedIp and port: $port (original input: $ip)")
 
         val since = Instant.now().minus(24, ChronoUnit.HOURS)
         val snapshots = serverSnapshotRepository.findByServerIdAndSnapshotTimeAfter(server.id!!, since)

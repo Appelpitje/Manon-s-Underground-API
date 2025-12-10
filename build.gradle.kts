@@ -31,8 +31,8 @@ dependencies {
 	implementation("com.twelvemonkeys.imageio:imageio-webp:3.12.0")
 	implementation("com.twelvemonkeys.imageio:imageio-core:3.12.0")
 	runtimeOnly("org.postgresql:postgresql")
-	testImplementation("org.springframework.boot:spring-boot-starter-security-test")
-	testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
+	testImplementation("org.springframework.boot:spring-boot-starter-test")
+	testImplementation("org.springframework.security:spring-security-test")
 	testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }

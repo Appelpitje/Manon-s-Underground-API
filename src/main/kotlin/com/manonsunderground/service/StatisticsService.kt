@@ -49,7 +49,7 @@ class StatisticsService(
         "mp_bologna_obj" to "Bologna",
         "mp_castello_obj" to "Castello",
         "mp_palermo_obj" to "Palermo",
-        "mp_kasserline_tow" to "Kasserine Pass",
+        "mp_kasserine_tow" to "Kasserine Pass",
         "mp_montebattaglia_tow" to "Monte Battaglia",
         "mp_montecassino_tow" to "Monte Cassino"
     )

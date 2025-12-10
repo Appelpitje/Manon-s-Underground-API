@@ -22,4 +22,9 @@ interface ServerSnapshotRepository : JpaRepository<ServerSnapshot, Long> {
      * Find the latest snapshot for a server by ip and hostport
      */
     fun findTopByServerIpAndServerHostportOrderBySnapshotTimeDesc(ip: String, hostport: Int): ServerSnapshot?
+
+    /**
+     * Find all snapshots for a specific server between two times
+     */
+    fun findAllByServerIdAndSnapshotTimeBetween(serverId: Long, startTime: Instant, endTime: Instant): List<ServerSnapshot>
 }

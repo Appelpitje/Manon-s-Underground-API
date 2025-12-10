@@ -3,6 +3,7 @@ package com.manonsunderground.service
 import com.manonsunderground.entity.Player
 import com.manonsunderground.entity.Server
 import com.manonsunderground.entity.ServerSnapshot
+import com.manonsunderground.model.PlayerHistoryPoint
 import com.manonsunderground.model.ServerDetailsResponse
 import com.manonsunderground.model.ServerListQuery
 import com.manonsunderground.repository.PlayerRepository
@@ -12,6 +13,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
+import java.time.temporal.ChronoUnit
 
 /**
  * Service for creating and managing server snapshots
@@ -215,6 +217,38 @@ class ServerSnapshotService(
         }
         
         return serverSnapshotRepository.save(snapshot)
+    }
+
+    /**
+     * Get player history for a server within a time range
+     * Aggregates data into 15-minute intervals (taking max players)
+     */
+    fun getPlayerHistory(
+        ip: String,
+        hostport: Int,
+        from: Instant = Instant.now().minus(24, ChronoUnit.HOURS),
+        to: Instant = Instant.now()
+    ): List<PlayerHistoryPoint> {
+        val server = serverRepository.findTopByIpAndHostportOrderByIdDesc(ip, hostport) 
+            ?: throw IllegalArgumentException("Server not found: $ip:$hostport")
+
+        val snapshots = serverSnapshotRepository.findAllByServerIdAndSnapshotTimeBetween(
+            server.id!!,
+            from,
+            to
+        )
+
+        // Group by 15-minute intervals
+        // 15 minutes = 900 seconds
+        return snapshots
+            .groupBy { it.snapshotTime.epochSecond / 900 }
+            .map { (bucket, snaps) ->
+                val bucketTime = Instant.ofEpochSecond(bucket * 900)
+                val maxPlayers = snaps.maxOf { it.numPlayers }
+                val limit = snaps.maxOf { it.maxPlayers }
+                PlayerHistoryPoint(bucketTime, maxPlayers, limit)
+            }
+            .sortedBy { it.timestamp }
     }
 }
 

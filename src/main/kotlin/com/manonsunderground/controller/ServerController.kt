@@ -4,9 +4,13 @@ import com.manonsunderground.model.ServerDetailsResponse
 import com.manonsunderground.model.ServerListQuery
 import com.manonsunderground.model.ServerListResponse
 import com.manonsunderground.model.MotdResponse
+import com.manonsunderground.model.PlayerHistoryPoint
 import com.manonsunderground.service.NetworksApiService
+import com.manonsunderground.service.ServerSnapshotService
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import java.time.Instant
+import java.time.temporal.ChronoUnit
 
 /**
  * REST Controller for accessing 333networks server information
@@ -16,7 +20,8 @@ import org.springframework.web.bind.annotation.*
 @RestController
 @RequestMapping("/api/servers")
 class ServerController(
-    private val networksApiService: NetworksApiService
+    private val networksApiService: NetworksApiService,
+    private val serverSnapshotService: ServerSnapshotService
 ) {
     
     /**
@@ -92,6 +97,32 @@ class ServerController(
     ): ResponseEntity<ServerDetailsResponse> {
         val serverDetails = networksApiService.getServerDetails(gamename, ip, port)
         return ResponseEntity.ok(serverDetails)
+    }
+
+    /**
+     * Get player history for a server
+     * 
+     * @param gamename Game identifier (used for consistency in URL, though logically attached to IP/Port)
+     * @param ip Server IP
+     * @param port Server Port
+     * @param from Start timestamp (optional, defaults to 24h ago)
+     * @param to End timestamp (optional, defaults to now)
+     */
+    @GetMapping("/{gamename}/{ip}/{port}/history")
+    fun getPlayerHistory(
+        @PathVariable gamename: String,
+        @PathVariable ip: String,
+        @PathVariable port: Int,
+        @RequestParam(required = false) from: Instant?,
+        @RequestParam(required = false) to: Instant?
+    ): ResponseEntity<List<PlayerHistoryPoint>> {
+        val history = serverSnapshotService.getPlayerHistory(
+            ip, 
+            port, 
+            from ?: Instant.now().minus(24, ChronoUnit.HOURS), 
+            to ?: Instant.now()
+        )
+        return ResponseEntity.ok(history)
     }
     
     /**

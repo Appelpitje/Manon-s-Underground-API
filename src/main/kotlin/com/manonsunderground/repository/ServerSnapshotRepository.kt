@@ -27,4 +27,7 @@ interface ServerSnapshotRepository : JpaRepository<ServerSnapshot, Long> {
      * Find all snapshots for a specific server between two times
      */
     fun findAllByServerIdAndSnapshotTimeBetween(serverId: Long, startTime: Instant, endTime: Instant): List<ServerSnapshot>
+
+    @org.springframework.data.jpa.repository.Query("SELECT new com.manonsunderground.model.MapFrequency(s.mapname, COUNT(s)) FROM ServerSnapshot s JOIN s.server sv WHERE s.snapshotTime > :minTimestamp AND (:gamename IS NULL OR sv.gamename = :gamename) GROUP BY s.mapname ORDER BY COUNT(s) DESC")
+    fun findMostPlayedMapsAfter(minTimestamp: Instant, gamename: String?): List<com.manonsunderground.model.MapFrequency>
 }

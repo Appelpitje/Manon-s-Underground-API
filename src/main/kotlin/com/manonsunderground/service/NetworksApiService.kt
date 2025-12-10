@@ -93,9 +93,21 @@ class NetworksApiService(
      * @return ServerDetailsResponse containing detailed server and player information
      */
     fun getServerDetails(gamename: String, ip: String, port: Int): ServerDetailsResponse {
-        val cacheKey = "server_${gamename}_${ip}_$port"
+        // Resolve hostname to IP if needed - consistent with BannerService
+        val resolvedIp = try {
+            val resolved = com.manonsunderground.util.DnsUtil.resolveToIp(ip)
+            if (resolved != ip) {
+                logger.info("DNS resolution (api): input='$ip', resolved='$resolved'")
+            }
+            resolved
+        } catch (e: Exception) {
+            logger.warn("Failed to resolve hostname: $ip, using original input", e)
+            ip
+        }
+        
+        val cacheKey = "server_${gamename}_${resolvedIp}_$port"
         return getCachedOrFetch(cacheKey) {
-            val url = "${config.baseUrl}/$gamename/$ip:$port"
+            val url = "${config.baseUrl}/$gamename/$resolvedIp:$port"
             logger.info("Fetching server details from $url")
             
             val response = restTemplate.getForObject(url, String::class.java)

@@ -60,6 +60,12 @@ data class ServerDetailsResponse(
                 )
             }
     }
+
+    /**
+     * Expose players extracted from dynamic fields for JSON serialization
+     */
+    @JsonProperty("players")
+    fun getPlayersList(): List<PlayerInfo> = extractPlayers()
 }
 
 /**

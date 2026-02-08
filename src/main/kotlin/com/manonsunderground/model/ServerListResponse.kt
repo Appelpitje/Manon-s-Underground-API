@@ -1,5 +1,6 @@
 package com.manonsunderground.model
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
 
 /**
@@ -13,10 +14,12 @@ data class ServerListResponse(
 /**
  * Individual server information in the list
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 data class ServerInfo(
     val id: Int,
     val ip: String,
     val hostport: Int,
+    val queryport: Int? = null,
     val hostname: String,
     val gamename: String,
     val gametype: String?,
